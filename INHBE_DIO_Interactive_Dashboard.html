@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INHBE DIO Study - Interactive Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            margin: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .controls-section {
+            width: 380px;
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .controls-inner {
+            padding: 20px;
+        }
+        
+        .plot-section {
+            flex: 1;
+            padding: 20px;
+            background: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #chart {
+            width: 100%;
+            flex: 1;
+        }
+        
+        /* Control Styling */
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            background: white;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Group Controls */
+        .group-controls {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .group-controls::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .group-controls::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .group-controls::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 4px;
+        }
+        
+        .group-controls::-webkit-scrollbar-thumb:hover {
+            background: #868e96;
+        }
+        
+        .group-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .group-name-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-family: inherit;
+        }
+        
+        .color-shape-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .color-picker {
+            width: 40px;
+            height: 32px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px;
+        }
+        
+        .shape-selector {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+        
+        /* Slider Controls */
+        .slider-control {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: #495057;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* Axis Controls */
+        .axis-control {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .axis-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .axis-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .axis-inputs input {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+        
+        .axis-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn-apply {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-apply:hover {
+            background: #5568d3;
+        }
+        
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .controls-section {
+                width: 100%;
+                max-height: 400px;
+                border-right: none;
+                border-bottom: 2px solid #e9ecef;
+            }
+            
+            .group-controls {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>INHBE DIO Study - Interactive Metabolic Dashboard</h1>
+            <p>Comprehensive visualization of mouse metabolic study data with real-time customization</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <div class="controls-inner">
+                    <!-- Metric Selection -->
+                    <div class="control-group">
+                        <label class="control-label">Select Metric</label>
+                        <select id="metricSelect">
+                            <option value="Body weight (g)">Body weight (g)</option> <option value="Body weight change (%)">Body weight change (%)</option> <option value="Food intake/day/mouse (g)">Food intake/day/mouse (g)</option> <option value="Water intake/day/mouse (g)">Water intake/day/mouse (g)</option> <option value="Fat mass (g)">Fat mass (g)</option> <option value="Lean mass (g)">Lean mass (g)</option> <option value="Fat mass/BW (%)">Fat mass/BW (%)</option> <option value="Lean mass/BW (%)">Lean mass/BW (%)</option> <option value="Fat mass change (%)">Fat mass change (%)</option> <option value="Lean mass change (%)">Lean mass change (%)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Group Customization -->
+                    <div class="control-group">
+                        <label class="control-label">Group Customization</label>
+                        <div class="group-controls" id="groupControls"></div>
+                    </div>
+                    
+                    <!-- Line & Marker Controls -->
+                    <div class="control-group">
+                        <label class="control-label">Line & Marker Settings</label>
+                        <div class="slider-control">
+                            <div class="slider-label">
+                                <span>Line Width</span>
+                                <span class="slider-value" id="lineWidthValue">2.00px</span>
+                            </div>
+                            <input type="range" id="lineWidthSlider" min="0.5" max="6" step="0.25" value="2">
+                        </div>
+                        <div class="slider-control">
+                            <div class="slider-label">
+                                <span>Marker Size</span>
+                                <span class="slider-value" id="markerSizeValue">7px</span>
+                            </div>
+                            <input type="range" id="markerSizeSlider" min="3" max="20" step="1" value="7">
+                        </div>
+                    </div>
+                    
+                    <!-- X-Axis Controls -->
+                    <div class="control-group">
+                        <label class="control-label">X-Axis Range</label>
+                        <div class="axis-control">
+                            <div class="axis-label">Days Post Administration</div>
+                            <div class="axis-inputs">
+                                <input type="number" id="xMin" placeholder="Min">
+                                <input type="number" id="xMax" placeholder="Max">
+                            </div>
+                            <div class="axis-buttons">
+                                <button class="btn-apply" onclick="applyXRange()">Apply</button>
+                                <button class="btn-reset" onclick="resetXRange()">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Y-Axis Controls -->
+                    <div class="control-group">
+                        <label class="control-label">Y-Axis Range</label>
+                        <div class="axis-control">
+                            <div class="axis-label" id="yAxisLabel">Metric Value</div>
+                            <div class="axis-inputs">
+                                <input type="number" id="yMin" placeholder="Min">
+                                <input type="number" id="yMax" placeholder="Max">
+                            </div>
+                            <div class="axis-buttons">
+                                <button class="btn-apply" onclick="applyYRange()">Apply</button>
+                                <button class="btn-reset" onclick="resetYRange()">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="plot-section">
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data from Python
+        const allData = {"Body weight (g)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 53.22, "sem": 1.4}, {"time": 3.0, "mean": 48.48333333, "sem": 1.345465636}, {"time": 6.0, "mean": 46.55, "sem": 1.72}], "Group 11: Saline": [{"time": -1.0, "mean": 35.44, "sem": 0.64}, {"time": 3.0, "mean": 36.18, "sem": 0.780640762}, {"time": 6.0, "mean": 35.44, "sem": 0.82}], "Group 1: Saline": [{"time": -1.0, "mean": 52.55, "sem": 0.8}, {"time": 3.0, "mean": 52.7875, "sem": 0.638479639}, {"time": 6.0, "mean": 53.09, "sem": 0.67}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 52.88, "sem": 0.66}, {"time": 3.0, "mean": 53.13333333, "sem": 0.797356744}, {"time": 6.0, "mean": 53.22, "sem": 0.65}], "Group 3: Sema-high": [{"time": -1.0, "mean": 52.82, "sem": 1.17}, {"time": 3.0, "mean": 47.91666667, "sem": 1.187831825}, {"time": 6.0, "mean": 45.15, "sem": 0.42}], "Group 4: Sema-low": [{"time": -1.0, "mean": 53.0, "sem": 0.59}, {"time": 3.0, "mean": 48.03333333, "sem": 1.090157991}, {"time": 6.0, "mean": 46.13, "sem": 1.68}], "Group 5: INHBE": [{"time": -1.0, "mean": 52.73, "sem": 0.86}, {"time": 3.0, "mean": 53.01666667, "sem": 0.771758454}, {"time": 6.0, "mean": 52.75, "sem": 0.64}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 52.52, "sem": 0.93}, {"time": 3.0, "mean": 52.93333333, "sem": 0.978661217}, {"time": 6.0, "mean": 53.23, "sem": 0.92}], "Group 7: Sema-low": [{"time": -1.0, "mean": 53.07, "sem": 0.58}, {"time": 3.0, "mean": 48.05, "sem": 0.508428953}, {"time": 6.0, "mean": 44.88, "sem": 0.86}], "Group 8: Sema-low": [{"time": -1.0, "mean": 52.68, "sem": 0.73}, {"time": 3.0, "mean": 48.03333333, "sem": 0.422426851}, {"time": 6.0, "mean": 45.42, "sem": 0.47}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 51.93, "sem": 1.09}, {"time": 3.0, "mean": 51.85, "sem": 1.088959748}, {"time": 6.0, "mean": 51.9, "sem": 1.05}]}, "Body weight change (%)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 2.6305900037579857}, {"time": 3.0, "mean": -8.900162852311158, "sem": 2.528120323186772}, {"time": 6.0, "mean": -12.532882375046977, "sem": 3.231867718902668}], "Group 11: Saline": [{"time": -1.0, "mean": 0.0, "sem": 1.8058690744920995}, {"time": 3.0, "mean": 2.0880361173814954, "sem": 2.202710953724605}, {"time": 6.0, "mean": 0.0, "sem": 2.3137697516930023}], "Group 1: Saline": [{"time": -1.0, "mean": 0.0, "sem": 1.5223596574690772}, {"time": 3.0, "mean": 0.45195052331114033, "sem": 1.2149945556612751}, {"time": 6.0, "mean": 1.0275927687916389, "sem": 1.2749762131303521}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 0.0, "sem": 1.248108925869894}, {"time": 3.0, "mean": 0.4790721066565746, "sem": 1.5078607110438729}, {"time": 6.0, "mean": 0.642965204235999, "sem": 1.2291981845688351}], "Group 3: Sema-high": [{"time": -1.0, "mean": 0.0, "sem": 2.2150700492237787}, {"time": 3.0, "mean": -9.28309982961, "sem": 2.24882965732677}, {"time": 6.0, "mean": -14.521014767133664, "sem": 0.7951533510034078}], "Group 4: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 1.1132075471698113}, {"time": 3.0, "mean": -9.37106918867925, "sem": 2.056901869811321}, {"time": 6.0, "mean": -12.962264150943392, "sem": 3.1698113207547167}], "Group 5: INHBE": [{"time": -1.0, "mean": 0.0, "sem": 1.630950123269486}, {"time": 3.0, "mean": 0.5436500474113455, "sem": 1.4636041228901953}, {"time": 6.0, "mean": 0.03792907263418002, "sem": 1.213730324293571}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 0.0, "sem": 1.7707539984767706}, {"time": 3.0, "mean": 0.7870017707539991, "sem": 1.8634067345773035}, {"time": 6.0, "mean": 1.35186595582634, "sem": 1.7517136329017517}], "Group 7: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 1.092896174863388}, {"time": 3.0, "mean": -9.459204823817604, "sem": 0.9580345826267194}, {"time": 6.0, "mean": -15.43244771057094, "sem": 1.620501224797437}], "Group 8: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 1.3857251328777525}, {"time": 3.0, "mean": -8.820551765375857, "sem": 0.8018732934700077}, {"time": 6.0, "mean": -13.781321184510247, "sem": 0.8921791951404707}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 2.0989793953398808}, {"time": 3.0, "mean": -0.15405353360292373, "sem": 2.0969762141344117}, {"time": 6.0, "mean": -0.05777007510109982, "sem": 2.021952628538417}]}, "Food intake/day/mouse (g)": {"Group 10: 25 mg/kg": [{"time": 0.0, "mean": 2.744444444, "sem": 0.066341801}, {"time": 3.0, "mean": 0.81, "sem": 0.04}, {"time": 6.0, "mean": 1.53, "sem": 0.06}], "Group 11: Saline": [{"time": 0.0, "mean": 3.76, "sem": 0.038809443}, {"time": 3.0, "mean": 4.4, "sem": 0.1}, {"time": 6.0, "mean": 3.38, "sem": 0.12}], "Group 1: Saline": [{"time": 0.0, "mean": 2.554166667, "sem": 0.046761878}, {"time": 3.0, "mean": 2.5, "sem": 0.13}, {"time": 6.0, "mean": 2.75, "sem": 0.07}], "Group 2: Isotype mAb control": [{"time": 0.0, "mean": 2.655555556, "sem": 0.084947333}, {"time": 3.0, "mean": 2.58, "sem": 0.12}, {"time": 6.0, "mean": 2.71, "sem": 0.08}], "Group 3: Sema-high": [{"time": 0.0, "mean": 2.594444444, "sem": 0.054715877}, {"time": 3.0, "mean": 0.72, "sem": 0.03}, {"time": 6.0, "mean": 1.32, "sem": 0.04}], "Group 4: Sema-low": [{"time": 0.0, "mean": 3.005555556, "sem": 0.114557657}, {"time": 3.0, "mean": 0.83, "sem": 0.18}, {"time": 6.0, "mean": 1.63, "sem": 0.21}], "Group 5: INHBE": [{"time": 0.0, "mean": 2.655555556, "sem": 0.0}, {"time": 3.0, "mean": 2.62, "sem": 0.0}, {"time": 6.0, "mean": 2.41, "sem": 0.0}], "Group 6: VialHLE_GDF8_07": [{"time": 0.0, "mean": 2.916666667, "sem": 0.052469862}, {"time": 3.0, "mean": 2.9, "sem": 0.06}, {"time": 6.0, "mean": 2.96, "sem": 0.06}], "Group 7: Sema-low": [{"time": 0.0, "mean": 2.833333333, "sem": 0.081989159}, {"time": 3.0, "mean": 0.77, "sem": 0.08}, {"time": 6.0, "mean": 1.14, "sem": 0.04}], "Group 8: Sema-low": [{"time": 0.0, "mean": 3.005555556, "sem": 0.096128772}, {"time": 3.0, "mean": 0.76, "sem": 0.1}, {"time": 6.0, "mean": 1.37, "sem": 0.17}], "Group 9: 25 mg/kg": [{"time": 0.0, "mean": 2.577777778, "sem": 0.221345493}, {"time": 3.0, "mean": 2.38, "sem": 0.07}, {"time": 6.0, "mean": 2.48, "sem": 0.13}]}, "Water intake/day/mouse (g)": {"Group 10: 25 mg/kg": [{"time": 0.0, "mean": 5.522222222, "sem": 0.329496436}, {"time": 3.0, "mean": 2.57, "sem": 0.29}, {"time": 6.0, "mean": 3.07, "sem": 0.18}], "Group 11: Saline": [{"time": 0.0, "mean": 6.28, "sem": 0.740290233}, {"time": 3.0, "mean": 7.54, "sem": 1.67}, {"time": 6.0, "mean": 7.52, "sem": 1.6}], "Group 1: Saline": [{"time": 0.0, "mean": 3.6875, "sem": 0.460863327}, {"time": 3.0, "mean": 5.26, "sem": 0.24}, {"time": 6.0, "mean": 3.41, "sem": 0.17}], "Group 2: Isotype mAb control": [{"time": 0.0, "mean": 4.716666667, "sem": 0.314642654}, {"time": 3.0, "mean": 5.25, "sem": 1.1}, {"time": 6.0, "mean": 7.33, "sem": 2.21}], "Group 3: Sema-high": [{"time": 0.0, "mean": 3.85, "sem": 0.679746685}, {"time": 3.0, "mean": 2.86, "sem": 0.99}, {"time": 6.0, "mean": 2.35, "sem": 0.15}], "Group 4: Sema-low": [{"time": 0.0, "mean": 5.044444444, "sem": 0.304341021}, {"time": 3.0, "mean": 4.15, "sem": 0.72}, {"time": 6.0, "mean": 2.78, "sem": 0.32}], "Group 5: INHBE": [{"time": 0.0, "mean": 4.316666667, "sem": 0.140765105}, {"time": 3.0, "mean": 3.22, "sem": 0.12}, {"time": 6.0, "mean": 3.91, "sem": 0.63}], "Group 6: VialHLE_GDF8_07": [{"time": 0.0, "mean": 6.094444444, "sem": 0.310007965}, {"time": 3.0, "mean": 5.13, "sem": 1.15}, {"time": 6.0, "mean": 4.54, "sem": 0.53}], "Group 7: Sema-low": [{"time": 0.0, "mean": 5.066666667, "sem": 0.790780205}, {"time": 3.0, "mean": 3.83, "sem": 0.51}, {"time": 6.0, "mean": 2.66, "sem": 0.08}], "Group 8: Sema-low": [{"time": 0.0, "mean": 5.066666667, "sem": 0.55429301}, {"time": 3.0, "mean": 3.69, "sem": 0.67}, {"time": 6.0, "mean": 3.77, "sem": 0.83}], "Group 9: 25 mg/kg": [{"time": 0.0, "mean": 4.366666667, "sem": 0.577013383}, {"time": 3.0, "mean": 4.72, "sem": 1.19}, {"time": 6.0, "mean": 4.22, "sem": 0.92}]}, "Fat mass (g)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 20.38, "sem": 0.87}, {"time": 6.0, "mean": 16.01, "sem": 1.24}], "Group 11: Saline": [{"time": -1.0, "mean": 2.2, "sem": 1.21}, {"time": 6.0, "mean": 2.34, "sem": 1.42}], "Group 1: Saline": [{"time": -1.0, "mean": 20.63, "sem": 0.41}, {"time": 6.0, "mean": 21.23, "sem": 0.35}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 20.45, "sem": 0.33}, {"time": 6.0, "mean": 20.96, "sem": 0.34}], "Group 3: Sema-high": [{"time": -1.0, "mean": 20.3, "sem": 0.93}, {"time": 6.0, "mean": 15.91, "sem": 0.51}], "Group 4: Sema-low": [{"time": -1.0, "mean": 19.65, "sem": 0.14}, {"time": 6.0, "mean": 16.13, "sem": 0.78}], "Group 5: INHBE": [{"time": -1.0, "mean": 20.48, "sem": 0.46}, {"time": 6.0, "mean": 20.2, "sem": 0.5}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 19.68, "sem": 0.86}, {"time": 6.0, "mean": 20.32, "sem": 0.94}], "Group 7: Sema-low": [{"time": -1.0, "mean": 19.74, "sem": 0.64}, {"time": 6.0, "mean": 14.6, "sem": 1.0}], "Group 8: Sema-low": [{"time": -1.0, "mean": 19.91, "sem": 0.33}, {"time": 6.0, "mean": 15.53, "sem": 0.56}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 19.87, "sem": 0.6}, {"time": 6.0, "mean": 19.28, "sem": 0.6}]}, "Lean mass (g)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 30.32, "sem": 0.42}, {"time": 6.0, "mean": 28.85, "sem": 0.5}], "Group 11: Saline": [{"time": -1.0, "mean": 32.1, "sem": 1.0}, {"time": 6.0, "mean": 32.19, "sem": 0.93}], "Group 1: Saline": [{"time": -1.0, "mean": 29.47, "sem": 0.43}, {"time": 6.0, "mean": 29.38, "sem": 0.37}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 30.17, "sem": 0.64}, {"time": 6.0, "mean": 29.73, "sem": 0.67}], "Group 3: Sema-high": [{"time": -1.0, "mean": 30.37, "sem": 0.31}, {"time": 6.0, "mean": 27.53, "sem": 0.31}], "Group 4: Sema-low": [{"time": -1.0, "mean": 30.7, "sem": 0.53}, {"time": 6.0, "mean": 28.29, "sem": 0.73}], "Group 5: INHBE": [{"time": -1.0, "mean": 29.98, "sem": 0.52}, {"time": 6.0, "mean": 29.97, "sem": 0.47}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 30.44, "sem": 0.47}, {"time": 6.0, "mean": 30.55, "sem": 0.44}], "Group 7: Sema-low": [{"time": -1.0, "mean": 31.02, "sem": 0.76}, {"time": 6.0, "mean": 28.75, "sem": 0.59}], "Group 8: Sema-low": [{"time": -1.0, "mean": 30.45, "sem": 0.49}, {"time": 6.0, "mean": 28.22, "sem": 0.21}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 29.75, "sem": 0.55}, {"time": 6.0, "mean": 30.39, "sem": 0.43}]}, "Fat mass/BW (%)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 38.23, "sem": 0.81}, {"time": 6.0, "mean": 34.14, "sem": 1.54}], "Group 11: Saline": [{"time": -1.0, "mean": 6.13, "sem": 3.27}, {"time": 6.0, "mean": 6.33, "sem": 3.67}], "Group 1: Saline": [{"time": -1.0, "mean": 39.26, "sem": 0.49}, {"time": 6.0, "mean": 39.99, "sem": 0.43}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 38.69, "sem": 0.76}, {"time": 6.0, "mean": 39.42, "sem": 0.81}], "Group 3: Sema-high": [{"time": -1.0, "mean": 38.35, "sem": 1.0}, {"time": 6.0, "mean": 35.2, "sem": 0.88}], "Group 4: Sema-low": [{"time": -1.0, "mean": 37.09, "sem": 0.45}, {"time": 6.0, "mean": 34.88, "sem": 0.54}], "Group 5: INHBE": [{"time": -1.0, "mean": 38.84, "sem": 0.58}, {"time": 6.0, "mean": 38.3, "sem": 0.8}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 37.4, "sem": 1.09}, {"time": 6.0, "mean": 38.09, "sem": 1.22}], "Group 7: Sema-low": [{"time": -1.0, "mean": 37.21, "sem": 1.28}, {"time": 6.0, "mean": 32.42, "sem": 1.77}], "Group 8: Sema-low": [{"time": -1.0, "mean": 37.8, "sem": 0.47}, {"time": 6.0, "mean": 34.15, "sem": 0.9}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 38.23, "sem": 0.56}, {"time": 6.0, "mean": 37.12, "sem": 0.62}]}, "Lean mass/BW (%)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 57.09, "sem": 1.08}, {"time": 6.0, "mean": 62.27, "sem": 1.8}], "Group 11: Saline": [{"time": -1.0, "mean": 90.69, "sem": 3.09}, {"time": 6.0, "mean": 91.09, "sem": 3.68}], "Group 1: Saline": [{"time": -1.0, "mean": 56.08, "sem": 0.42}, {"time": 6.0, "mean": 55.35, "sem": 0.46}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 57.03, "sem": 0.76}, {"time": 6.0, "mean": 55.84, "sem": 0.69}], "Group 3: Sema-high": [{"time": -1.0, "mean": 57.62, "sem": 1.13}, {"time": 6.0, "mean": 61.01, "sem": 0.96}], "Group 4: Sema-low": [{"time": -1.0, "mean": 57.9, "sem": 0.47}, {"time": 6.0, "mean": 61.45, "sem": 0.83}], "Group 5: INHBE": [{"time": -1.0, "mean": 56.86, "sem": 0.72}, {"time": 6.0, "mean": 56.81, "sem": 0.51}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 58.05, "sem": 1.33}, {"time": 6.0, "mean": 57.49, "sem": 1.32}], "Group 7: Sema-low": [{"time": -1.0, "mean": 58.43, "sem": 1.11}, {"time": 6.0, "mean": 64.17, "sem": 1.7}], "Group 8: Sema-low": [{"time": -1.0, "mean": 57.81, "sem": 0.56}, {"time": 6.0, "mean": 62.17, "sem": 0.95}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 57.32, "sem": 0.65}, {"time": 6.0, "mean": 58.61, "sem": 0.74}]}, "Fat mass change (%)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -22.03, "sem": 3.06}], "Group 11: Saline": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 0.45, "sem": 11.29}], "Group 1: Saline": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 2.96, "sem": 1.17}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 2.53, "sem": 0.56}], "Group 3: Sema-high": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -21.35, "sem": 1.66}], "Group 4: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -17.92, "sem": 3.9}], "Group 5: INHBE": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -1.35, "sem": 1.02}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 3.23, "sem": 1.01}], "Group 7: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -26.36, "sem": 3.13}], "Group 8: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -21.96, "sem": 2.7}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -2.97, "sem": 0.53}]}, "Lean mass change (%)": {"Group 10: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -4.87, "sem": 0.45}], "Group 11: Saline": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 0.3, "sem": 0.31}], "Group 1: Saline": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -0.26, "sem": 0.72}], "Group 2: Isotype mAb control": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -1.46, "sem": 0.33}], "Group 3: Sema-high": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -9.31, "sem": 1.24}], "Group 4: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -7.91, "sem": 0.9}], "Group 5: INHBE": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 0.0, "sem": 0.63}], "Group 6: VialHLE_GDF8_07": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 0.38, "sem": 0.29}], "Group 7: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -7.22, "sem": 1.12}], "Group 8: Sema-low": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": -7.27, "sem": 1.04}], "Group 9: 25 mg/kg": [{"time": -1.0, "mean": 0.0, "sem": 0.0}, {"time": 6.0, "mean": 2.18, "sem": 0.51}]}};
+        const groupList = ["Group 10: 25 mg/kg", "Group 11: Saline", "Group 1: Saline", "Group 2: Isotype mAb control", "Group 3: Sema-high", "Group 4: Sema-low", "Group 5: INHBE", "Group 6: VialHLE_GDF8_07", "Group 7: Sema-low", "Group 8: Sema-low", "Group 9: 25 mg/kg"];
+        const metricList = ["Body weight (g)", "Body weight change (%)", "Food intake/day/mouse (g)", "Water intake/day/mouse (g)", "Fat mass (g)", "Lean mass (g)", "Fat mass/BW (%)", "Lean mass/BW (%)", "Fat mass change (%)", "Lean mass change (%)"];
+        const markerShapes = ["circle", "square", "diamond", "cross", "x", "triangle-up", "triangle-down", "star", "hexagon", "pentagon"];
+        
+        // State management
+        const currentState = {
+            metric: metricList[0],
+            groupColors: {"Group 10: 25 mg/kg": "#1f77b4", "Group 11: Saline": "#ff7f0e", "Group 1: Saline": "#2ca02c", "Group 2: Isotype mAb control": "#d62728", "Group 3: Sema-high": "#9467bd", "Group 4: Sema-low": "#8c564b", "Group 5: INHBE": "#e377c2", "Group 6: VialHLE_GDF8_07": "#7f7f7f", "Group 7: Sema-low": "#bcbd22", "Group 8: Sema-low": "#17becf", "Group 9: 25 mg/kg": "#aec7e8"},
+            groupNames: {},
+            groupShapes: {"Group 10: 25 mg/kg": "circle", "Group 11: Saline": "circle", "Group 1: Saline": "circle", "Group 2: Isotype mAb control": "circle", "Group 3: Sema-high": "circle", "Group 4: Sema-low": "circle", "Group 5: INHBE": "circle", "Group 6: VialHLE_GDF8_07": "circle", "Group 7: Sema-low": "circle", "Group 8: Sema-low": "circle", "Group 9: 25 mg/kg": "circle"},
+            lineWidth: 2.0,
+            markerSize: 7,
+            xRange: null,
+            yRange: null,
+            visibilityState: {}
+        };
+        
+        // Initialize group names
+        groupList.forEach(group => {
+            currentState.groupNames[group] = group;
+        });
+        
+        // Initialize group controls
+        function initializeGroupControls() {
+            const container = document.getElementById('groupControls');
+            container.innerHTML = '';
+            
+            groupList.forEach((group, index) => {
+                const div = document.createElement('div');
+                div.className = 'group-item';
+                div.innerHTML = `
+                    <input type="text" class="group-name-input" 
+                           value="${group}" 
+                           onchange="updateGroupName('${group}', this.value)">
+                    <div class="color-shape-row">
+                        <input type="color" class="color-picker" 
+                               value="${currentState.groupColors[group]}" 
+                               onchange="updateGroupColor('${group}', this.value)">
+                        <select class="shape-selector" 
+                                onchange="updateGroupShape('${group}', this.value)">
+                            ${markerShapes.map(shape => 
+                                `<option value="${shape}" ${shape === 'circle' ? 'selected' : ''}>${shape}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Update group name
+        function updateGroupName(group, newName) {
+            currentState.groupNames[group] = newName;
+            updatePlot();
+        }
+        
+        // Update group color (PRESERVE LINE WIDTH)
+        function updateGroupColor(group, newColor) {
+            currentState.groupColors[group] = newColor;
+            const traceIndex = groupList.indexOf(group);
+            
+            const update = {
+                'line.color': [newColor],
+                'marker.color': [newColor],
+                'error_y.color': [newColor],
+                'line.width': [currentState.lineWidth]  // CRITICAL: Preserve width
+            };
+            
+            Plotly.restyle('chart', update, [traceIndex]);
+        }
+        
+        // Update group shape
+        function updateGroupShape(group, newShape) {
+            currentState.groupShapes[group] = newShape;
+            const traceIndex = groupList.indexOf(group);
+            Plotly.restyle('chart', {'marker.symbol': [newShape]}, [traceIndex]);
+        }
+        
+        // Create plot
+        function createPlot() {
+            const metric = currentState.metric;
+            const metricData = allData[metric];
+            
+            const traces = [];
+            
+            groupList.forEach(group => {
+                if (!metricData[group]) return;
+                
+                const data = metricData[group];
+                const times = data.map(d => d.time);
+                const means = data.map(d => d.mean);
+                const sems = data.map(d => d.sem);
+                
+                const trace = {
+                    name: currentState.groupNames[group],
+                    x: times,
+                    y: means,
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    line: {
+                        color: currentState.groupColors[group],
+                        width: currentState.lineWidth
+                    },
+                    marker: {
+                        color: currentState.groupColors[group],
+                        size: currentState.markerSize,
+                        symbol: currentState.groupShapes[group]
+                    },
+                    error_y: {
+                        type: 'data',
+                        array: sems,
+                        visible: true,
+                        color: currentState.groupColors[group],
+                        thickness: 1.5,
+                        width: 4
+                    },
+                    connectgaps: false,
+                    hovertemplate: '<b>%{fullData.name}</b><br>' +
+                                  'Day %{x}<br>' +
+                                  'Mean: %{y:.2f}<br>' +
+                                  'SEM: ±%{error_y.array:.2f}<extra></extra>',
+                    visible: currentState.visibilityState[group] !== undefined ? 
+                             currentState.visibilityState[group] : true
+                };
+                
+                traces.push(trace);
+            });
+            
+            const layout = {
+                title: '',
+                xaxis: {
+                    title: {
+                        text: '<b>Days Post Administration</b>',
+                        font: { size: 14, color: '#2c3e50' }
+                    },
+                    gridcolor: '#e0e0e0',
+                    zerolinecolor: '#bdbdbd',
+                    zerolinewidth: 2,
+                    range: currentState.xRange
+                },
+                yaxis: {
+                    title: {
+                        text: `<b>${metric}</b>`,
+                        font: { size: 14, color: '#2c3e50' }
+                    },
+                    gridcolor: '#e0e0e0',
+                    zerolinecolor: '#bdbdbd',
+                    zerolinewidth: 2,
+                    range: currentState.yRange
+                },
+                plot_bgcolor: '#ffffff',
+                paper_bgcolor: '#ffffff',
+                font: {
+                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    size: 12,
+                    color: '#2c3e50'
+                },
+                legend: {
+                    x: 1.02,
+                    y: 1,
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    bordercolor: '#e0e0e0',
+                    borderwidth: 1,
+                    font: { size: 11 }
+                },
+                margin: { t: 50, r: 200, b: 60, l: 80 },
+                autosize: true,
+                hovermode: 'closest'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'INHBE_DIO_study',
+                    height: 1200,
+                    width: 1600,
+                    scale: 2
+                },
+                modeBarButtonsToRemove: ['select2d', 'lasso2d']
+            };
+            
+            Plotly.newPlot('chart', traces, layout, config);
+        }
+        
+        // Update plot
+        function updatePlot() {
+            // Save current visibility state
+            const chartElement = document.getElementById('chart');
+            if (chartElement.data) {
+                chartElement.data.forEach((trace, idx) => {
+                    if (trace.visible !== undefined) {
+                        currentState.visibilityState[groupList[idx]] = trace.visible;
+                    }
+                });
+            }
+            
+            createPlot();
+        }
+        
+        // Metric selection change
+        document.getElementById('metricSelect').addEventListener('change', function(e) {
+            currentState.metric = e.target.value;
+            document.getElementById('yAxisLabel').textContent = e.target.value;
+            updatePlot();
+        });
+        
+        // Line width slider
+        document.getElementById('lineWidthSlider').addEventListener('input', function(e) {
+            const value = parseFloat(e.target.value);
+            currentState.lineWidth = value;
+            document.getElementById('lineWidthValue').textContent = value.toFixed(2) + 'px';
+            
+            const update = {'line.width': Array(groupList.length).fill(value)};
+            Plotly.restyle('chart', update);
+        });
+        
+        // Marker size slider
+        document.getElementById('markerSizeSlider').addEventListener('input', function(e) {
+            const value = parseInt(e.target.value);
+            currentState.markerSize = value;
+            document.getElementById('markerSizeValue').textContent = value + 'px';
+            
+            const update = {'marker.size': Array(groupList.length).fill(value)};
+            Plotly.restyle('chart', update);
+        });
+        
+        // X-axis range controls
+        function applyXRange() {
+            const min = parseFloat(document.getElementById('xMin').value);
+            const max = parseFloat(document.getElementById('xMax').value);
+            
+            if (!isNaN(min) && !isNaN(max) && min < max) {
+                currentState.xRange = [min, max];
+                Plotly.relayout('chart', {'xaxis.range': [min, max]});
+            }
+        }
+        
+        function resetXRange() {
+            currentState.xRange = null;
+            document.getElementById('xMin').value = '';
+            document.getElementById('xMax').value = '';
+            Plotly.relayout('chart', {'xaxis.autorange': true});
+        }
+        
+        // Y-axis range controls
+        function applyYRange() {
+            const min = parseFloat(document.getElementById('yMin').value);
+            const max = parseFloat(document.getElementById('yMax').value);
+            
+            if (!isNaN(min) && !isNaN(max) && min < max) {
+                currentState.yRange = [min, max];
+                Plotly.relayout('chart', {'yaxis.range': [min, max]});
+            }
+        }
+        
+        function resetYRange() {
+            currentState.yRange = null;
+            document.getElementById('yMin').value = '';
+            document.getElementById('yMax').value = '';
+            Plotly.relayout('chart', {'yaxis.autorange': true});
+        }
+        
+        // Initialize
+        initializeGroupControls();
+        createPlot();
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('chart');
+        });
+    </script>
+</body>
+</html>
