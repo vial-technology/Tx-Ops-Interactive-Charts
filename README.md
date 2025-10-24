@@ -60,8 +60,8 @@ text
 
 ### Step 7: Access Your New Dashboard
 1. Wait 2-3 minutes for GitHub Pages to rebuild your site\
-• Your new dashboard will be at: https://jared-d-sharp.github.io/Tx-Ops-Interactive-Charts//dashboard-name/   
-• Your landing page is at: https://jared-d-sharp.github.io/Tx-Ops-Interactive-Charts//
+• Your new dashboard will be at: https://vial-technology.github.io/Tx-Ops-Interactive-Charts//dashboard-name/   
+• Your landing page is at: https://vial-technology.github.io/Tx-Ops-Interactive-Charts//
 
 ## 📁 Repository Structure
 text\
